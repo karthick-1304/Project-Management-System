@@ -5,6 +5,8 @@ import { env } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { pool } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import projectRoutes from './routes/project.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 export function createApp() {
   const app = express();
@@ -27,8 +29,8 @@ export function createApp() {
 
   // Feature routes
   app.use('/api/auth', authRoutes);
-  // app.use('/api/projects', projectRoutes);
-  // ...
+  app.use('/api/projects', projectRoutes);
+  app.use('/api/users', userRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
