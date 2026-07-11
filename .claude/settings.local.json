@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ponka/Downloads/**)",
+      "Bash(pandoc -t markdown \"Project Dev.docx\")"
+    ]
+  }
+}
