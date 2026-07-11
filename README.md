@@ -43,7 +43,12 @@ A full-stack project management application (Jira/Trello/Asana-style) with proje
 
 **Responsive** — works across desktop, tablet, and mobile (collapsible sidebar).
 
-**Bonus features implemented:** Dark/Light mode · File Attachments · Calendar View · Export Tasks (CSV).
+**Bonus features — all 5 implemented** (only 2 were required):
+1. **Dark / Light mode** — theme toggle, persisted
+2. **File Attachments** — on comments, stored in Supabase Storage
+3. **Calendar View** — tasks by due date
+4. **Export Tasks (CSV)** — per-project download
+5. **Team Members** — project collaborators with owner/member roles, add/remove, and email invitations (see Collaborators below)
 
 ### Permission model
 
