@@ -6,8 +6,10 @@ import ProjectSettingsModal from '../features/projects/ProjectSettingsModal.jsx'
 import TaskFormModal from '../features/tasks/TaskFormModal.jsx';
 import TaskDetailsModal from '../features/tasks/TaskDetailsModal.jsx';
 import KanbanBoard from '../features/tasks/KanbanBoard.jsx';
+import CalendarView from '../features/tasks/CalendarView.jsx';
 import { Button, Alert } from '../components/ui.jsx';
 import { projectStatusClasses, PROJECT_STATUS_LABEL } from '../lib/format.js';
+import { tasksToCsv, downloadText } from '../lib/csv.js';
 
 export default function ProjectBoard() {
   const { id } = useParams();
@@ -17,6 +19,7 @@ export default function ProjectBoard() {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
 
+  const [view, setView] = useState('board'); // 'board' | 'calendar'
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [createStatus, setCreateStatus] = useState('todo');
@@ -99,6 +102,27 @@ export default function ProjectBoard() {
           <span className="text-xs text-gray-400">({project.myRole})</span>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
+            <button
+              onClick={() => setView('board')}
+              className={`px-3 py-1.5 text-sm ${view === 'board' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
+            >
+              Board
+            </button>
+            <button
+              onClick={() => setView('calendar')}
+              className={`px-3 py-1.5 text-sm ${view === 'calendar' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
+            >
+              Calendar
+            </button>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={() => downloadText(`${project.key}-tasks.csv`, tasksToCsv(tasks))}
+            title="Export tasks to CSV"
+          >
+            Export CSV
+          </Button>
           <Button onClick={() => openCreate('todo')}>+ New task</Button>
           <button
             onClick={() => setSettingsOpen(true)}
@@ -152,13 +176,17 @@ export default function ProjectBoard() {
         </div>
       )}
 
-      {/* Kanban board (drag-and-drop) */}
-      <KanbanBoard
-        tasks={tasks}
-        onOpen={(taskId) => setDetailsTaskId(taskId)}
-        onAdd={(status) => openCreate(status)}
-        onMove={moveTask}
-      />
+      {/* Board or calendar view */}
+      {view === 'board' ? (
+        <KanbanBoard
+          tasks={tasks}
+          onOpen={(taskId) => setDetailsTaskId(taskId)}
+          onAdd={(status) => openCreate(status)}
+          onMove={moveTask}
+        />
+      ) : (
+        <CalendarView tasks={tasks} onOpen={(taskId) => setDetailsTaskId(taskId)} />
+      )}
 
       {/* Modals */}
       <ProjectSettingsModal

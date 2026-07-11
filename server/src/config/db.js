@@ -1,7 +1,11 @@
 import pg from 'pg';
 import { env } from './env.js';
 
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+// Return DATE (OID 1082) columns as plain 'YYYY-MM-DD' strings instead of JS
+// Dates, so due dates aren't shifted a day by timezone during JSON serialization.
+types.setTypeParser(1082, (v) => v);
 
 export const pool = new Pool({
   connectionString: env.databaseUrl,
