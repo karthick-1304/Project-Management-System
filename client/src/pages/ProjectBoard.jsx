@@ -5,11 +5,9 @@ import { tasksApi } from '../api/tasks.js';
 import ProjectSettingsModal from '../features/projects/ProjectSettingsModal.jsx';
 import TaskFormModal from '../features/tasks/TaskFormModal.jsx';
 import TaskDetailsModal from '../features/tasks/TaskDetailsModal.jsx';
-import TaskCard from '../features/tasks/TaskCard.jsx';
-import { Button } from '../components/ui.jsx';
-import { projectStatusClasses, PROJECT_STATUS_LABEL, TASK_STATUS_LABEL } from '../lib/format.js';
-
-const COLUMNS = ['todo', 'inprogress', 'done'];
+import KanbanBoard from '../features/tasks/KanbanBoard.jsx';
+import { Button, Alert } from '../components/ui.jsx';
+import { projectStatusClasses, PROJECT_STATUS_LABEL } from '../lib/format.js';
 
 export default function ProjectBoard() {
   const { id } = useParams();
@@ -58,6 +56,20 @@ export default function ProjectBoard() {
     setCreateOpen(true);
   };
 
+  // Optimistic drag-to-move; reverts and shows an error if the server rejects.
+  const moveTask = async (task, status) => {
+    const prev = tasks;
+    setTasks((ts) => ts.map((t) => (t.id === task.id ? { ...t, status } : t)));
+    setError('');
+    try {
+      await tasksApi.updateStatus(task.id, status);
+      loadProject(); // refresh counts
+    } catch (e) {
+      setTasks(prev); // revert
+      setError(e.message);
+    }
+  };
+
   if (error && !project) {
     return (
       <div className="p-6">
@@ -69,8 +81,6 @@ export default function ProjectBoard() {
     );
   }
   if (!project) return <div className="p-6 text-gray-500 dark:text-gray-400">Loading…</div>;
-
-  const byStatus = (s) => tasks.filter((t) => t.status === s);
 
   return (
     <div className="p-6">
@@ -136,34 +146,19 @@ export default function ProjectBoard() {
         </select>
       </div>
 
-      {/* Columns */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {COLUMNS.map((col) => {
-          const colTasks = byStatus(col);
-          return (
-            <div key={col} className="rounded-xl bg-gray-100 dark:bg-gray-800/50 p-3">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {TASK_STATUS_LABEL[col]}{' '}
-                  <span className="text-gray-400">({colTasks.length})</span>
-                </h2>
-                <button
-                  onClick={() => openCreate(col)}
-                  className="text-gray-400 hover:text-indigo-600"
-                  title={`Add task to ${TASK_STATUS_LABEL[col]}`}
-                >
-                  +
-                </button>
-              </div>
-              <div className="space-y-2 min-h-[40px]">
-                {colTasks.map((t) => (
-                  <TaskCard key={t.id} task={t} onClick={() => setDetailsTaskId(t.id)} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {error && (
+        <div className="mb-3">
+          <Alert>{error}</Alert>
+        </div>
+      )}
+
+      {/* Kanban board (drag-and-drop) */}
+      <KanbanBoard
+        tasks={tasks}
+        onOpen={(taskId) => setDetailsTaskId(taskId)}
+        onAdd={(status) => openCreate(status)}
+        onMove={moveTask}
+      />
 
       {/* Modals */}
       <ProjectSettingsModal
