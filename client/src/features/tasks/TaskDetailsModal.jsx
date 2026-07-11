@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal.jsx';
 import { Button, Alert } from '../../components/ui.jsx';
 import { tasksApi } from '../../api/tasks.js';
+import CommentsSection from './CommentsSection.jsx';
 import {
   formatDate,
   priorityClasses,
@@ -123,7 +124,11 @@ export default function TaskDetailsModal({ open, onClose, taskId, onEdit, onChan
 
           <Alert kind="info">{editHint}</Alert>
 
-          {/* Comments and activity log sections are added in later steps. */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <CommentsSection taskId={task.id} canDeleteAny={perms?.canDelete} />
+          </div>
+
+          {/* Activity log section is added in the next step. */}
 
           <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
             {perms?.canDelete &&
