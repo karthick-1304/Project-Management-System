@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import { env } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { pool } from './config/db.js';
+import authRoutes from './routes/auth.routes.js';
 
 export function createApp() {
   const app = express();
@@ -24,8 +25,8 @@ export function createApp() {
     res.json({ status: 'ok', db, time: new Date().toISOString() });
   });
 
-  // Feature routes are mounted here as they are built:
-  // app.use('/api/auth', authRoutes);
+  // Feature routes
+  app.use('/api/auth', authRoutes);
   // app.use('/api/projects', projectRoutes);
   // ...
 
