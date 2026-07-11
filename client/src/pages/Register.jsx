@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthLayout from '../layouts/AuthLayout.jsx';
-import { Button, Input, Alert } from '../components/ui.jsx';
+import { Button, Input, PasswordInput, Alert } from '../components/ui.jsx';
 
 export default function Register() {
   const { register } = useAuth();
@@ -45,10 +45,9 @@ export default function Register() {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
-        <Input
+        <PasswordInput
           id="password"
           label="Password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}

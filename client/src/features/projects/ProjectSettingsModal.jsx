@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal.jsx';
 import { Button, Input, Alert } from '../../components/ui.jsx';
-import EmailChips from './EmailChips.jsx';
 import { projectsApi } from '../../api/projects.js';
 import {
   formatDate,
@@ -14,7 +13,7 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
   const [form, setForm] = useState({ name: '', key: '', description: '', status: 'Active' });
   const [collaborators, setCollaborators] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [newEmails, setNewEmails] = useState([]);
+  const [newEmail, setNewEmail] = useState('');
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -32,7 +31,7 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
     setError('');
     setMsg('');
     setConfirmDelete(false);
-    setNewEmails([]);
+    setNewEmail('');
     projectsApi.logs(project.id).then((d) => setLogs(d.logs)).catch(() => setLogs([]));
   }, [open, project]);
 
@@ -51,18 +50,17 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
     }
   };
 
-  const addCollaborators = async () => {
+  const addCollaborator = async () => {
+    const email = newEmail.trim();
+    if (!email) return;
     setError('');
+    setMsg('');
     setBusy(true);
     try {
-      let latest = collaborators;
-      for (const email of newEmails) {
-        const { collaborators: c } = await projectsApi.addCollaborator(project.id, email);
-        latest = c;
-      }
-      setCollaborators(latest);
-      setNewEmails([]);
-      setMsg('Collaborator(s) added and notified.');
+      const { collaborators: c } = await projectsApi.addCollaborator(project.id, email);
+      setCollaborators(c);
+      setNewEmail('');
+      setMsg('Collaborator added and notified.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -125,7 +123,7 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
               Description
             </label>
             <textarea
-              rows={2}
+              rows={4}
               value={form.description}
               disabled={!isOwner}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -198,13 +196,23 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
             ))}
           </ul>
           {isOwner && (
-            <div className="mt-3">
-              <EmailChips emails={newEmails} onChange={setNewEmails} />
-              {newEmails.length > 0 && (
-                <Button variant="secondary" className="mt-2" onClick={addCollaborators} disabled={busy}>
-                  Add {newEmails.length} collaborator{newEmails.length === 1 ? '' : 's'}
-                </Button>
-              )}
+            <div className="mt-3 flex gap-2">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCollaborator();
+                  }
+                }}
+                placeholder="collaborator@example.com"
+                className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <Button variant="secondary" onClick={addCollaborator} disabled={busy || !newEmail.trim()}>
+                Add
+              </Button>
             </div>
           )}
         </section>

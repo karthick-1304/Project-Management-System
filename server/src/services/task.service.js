@@ -59,13 +59,20 @@ export async function listTasks(userId, projectId, { status, priority, search } 
   await requireProjectAccess(userId, projectId);
   const params = [projectId];
   const where = ['t.project_id = $1'];
-  if (status && VALID_STATUS.includes(status)) {
-    params.push(status);
-    where.push(`t.status = $${params.length}`);
+
+  // status/priority accept a single value or a comma-separated list (multi-select).
+  const toList = (v) =>
+    (Array.isArray(v) ? v : String(v || '').split(',')).map((s) => s.trim()).filter(Boolean);
+  const statusList = toList(status).filter((s) => VALID_STATUS.includes(s));
+  const priorityList = toList(priority).filter((p) => VALID_PRIORITY.includes(p));
+
+  if (statusList.length) {
+    params.push(statusList);
+    where.push(`t.status = ANY($${params.length})`);
   }
-  if (priority && VALID_PRIORITY.includes(priority)) {
-    params.push(priority);
-    where.push(`t.priority = $${params.length}`);
+  if (priorityList.length) {
+    params.push(priorityList);
+    where.push(`t.priority = ANY($${params.length})`);
   }
   if (search) {
     params.push(`%${search}%`);

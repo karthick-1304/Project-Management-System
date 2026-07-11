@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth.js';
 import AuthLayout from '../layouts/AuthLayout.jsx';
-import { Button, Input, Alert } from '../components/ui.jsx';
+import { Button, Input, PasswordInput, Alert } from '../components/ui.jsx';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -45,10 +45,9 @@ export default function ResetPassword() {
           value={form.otp}
           onChange={(e) => setForm({ ...form, otp: e.target.value })}
         />
-        <Input
+        <PasswordInput
           id="newPassword"
           label="New password"
-          type="password"
           autoComplete="new-password"
           minLength={8}
           required

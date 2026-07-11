@@ -57,11 +57,16 @@ function Column({ id, tasks, onOpen, onAdd }) {
   );
 }
 
-export default function KanbanBoard({ tasks, onOpen, onAdd, onMove }) {
+export default function KanbanBoard({ tasks, visibleStatuses = [], onOpen, onAdd, onMove }) {
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
+
+  // Show only the checked status columns; if none checked, show all.
+  const columns = visibleStatuses.length
+    ? COLUMNS.filter((c) => visibleStatuses.includes(c))
+    : COLUMNS;
 
   const byStatus = (s) => tasks.filter((t) => t.status === s);
   const activeTask = tasks.find((t) => t.id === activeId);
@@ -83,8 +88,8 @@ export default function KanbanBoard({ tasks, onOpen, onAdd, onMove }) {
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
     >
-      <div className="grid gap-4 md:grid-cols-3">
-        {COLUMNS.map((col) => (
+      <div className={`grid gap-4 ${columns.length === 1 ? '' : columns.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+        {columns.map((col) => (
           <Column key={col} id={col} tasks={byStatus(col)} onOpen={onOpen} onAdd={onAdd} />
         ))}
       </div>

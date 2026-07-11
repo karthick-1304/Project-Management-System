@@ -17,7 +17,7 @@ export default function ProjectBoard() {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
+  const [filters, setFilters] = useState({ search: '', statuses: [], priorities: [] });
 
   const [view, setView] = useState('board'); // 'board' | 'calendar'
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -35,10 +35,22 @@ export default function ProjectBoard() {
 
   const loadTasks = useCallback(() => {
     tasksApi
-      .list(id, filters)
+      .list(id, {
+        search: filters.search,
+        status: filters.statuses.join(','),
+        priority: filters.priorities.join(','),
+      })
       .then((d) => setTasks(d.tasks))
       .catch((e) => setError(e.message));
   }, [id, filters]);
+
+  // Toggle a value in a filter array (statuses or priorities).
+  const toggleFilter = (key, value) =>
+    setFilters((f) => {
+      const set = new Set(f[key]);
+      set.has(value) ? set.delete(value) : set.add(value);
+      return { ...f, [key]: [...set] };
+    });
 
   useEffect(() => {
     loadProject();
@@ -140,34 +152,44 @@ export default function ProjectBoard() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      {/* Filters — search + multi-select checkboxes (filter by one or more) */}
+      <div className="mb-4 space-y-2">
         <input
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           placeholder="Search by key or title…"
-          className="flex-1 min-w-[200px] rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full sm:max-w-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <select
-          value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-          className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-2 text-sm text-gray-900 dark:text-gray-100"
-        >
-          <option value="">All statuses</option>
-          <option value="todo">To Do</option>
-          <option value="inprogress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-        <select
-          value={filters.priority}
-          onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-          className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-2 text-sm text-gray-900 dark:text-gray-100"
-        >
-          <option value="">All priorities</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+          <FilterGroup
+            label="Status"
+            options={[
+              ['todo', 'To Do'],
+              ['inprogress', 'In Progress'],
+              ['done', 'Done'],
+            ]}
+            selected={filters.statuses}
+            onToggle={(v) => toggleFilter('statuses', v)}
+          />
+          <FilterGroup
+            label="Priority"
+            options={[
+              ['low', 'Low'],
+              ['medium', 'Medium'],
+              ['high', 'High'],
+            ]}
+            selected={filters.priorities}
+            onToggle={(v) => toggleFilter('priorities', v)}
+          />
+          {(filters.statuses.length > 0 || filters.priorities.length > 0) && (
+            <button
+              onClick={() => setFilters((f) => ({ ...f, statuses: [], priorities: [] }))}
+              className="text-xs text-indigo-600 hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -180,6 +202,7 @@ export default function ProjectBoard() {
       {view === 'board' ? (
         <KanbanBoard
           tasks={tasks}
+          visibleStatuses={filters.statuses}
           onOpen={(taskId) => setDetailsTaskId(taskId)}
           onAdd={(status) => openCreate(status)}
           onMove={moveTask}
@@ -228,6 +251,29 @@ export default function ProjectBoard() {
         }}
         onChanged={refresh}
       />
+    </div>
+  );
+}
+
+// A labelled group of checkboxes for multi-select filtering.
+function FilterGroup({ label, options, selected, onToggle }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-gray-500 dark:text-gray-400 font-medium">{label}:</span>
+      {options.map(([value, text]) => (
+        <label
+          key={value}
+          className="inline-flex items-center gap-1 cursor-pointer text-gray-700 dark:text-gray-300"
+        >
+          <input
+            type="checkbox"
+            checked={selected.includes(value)}
+            onChange={() => onToggle(value)}
+            className="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
+          />
+          {text}
+        </label>
+      ))}
     </div>
   );
 }

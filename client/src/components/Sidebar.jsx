@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { projectsApi } from '../api/projects.js';
 
 // Sidebar: "Projects" label + search + create; list of the user's projects;
 // and a link to the full projects dashboard.
-export default function Sidebar({ onCreateProject, refreshKey }) {
+export default function Sidebar({ onCreateProject, onNavigate }) {
   const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Re-fetch on search change AND on every route change, so newly created or
+  // deleted projects (which navigate) reflect immediately without a refresh.
   useEffect(() => {
     let active = true;
     projectsApi
@@ -18,10 +21,10 @@ export default function Sidebar({ onCreateProject, refreshKey }) {
     return () => {
       active = false;
     };
-  }, [search, refreshKey]);
+  }, [search, location.pathname]);
 
   return (
-    <aside className="w-64 shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
+    <aside className="w-64 h-full shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -53,6 +56,7 @@ export default function Sidebar({ onCreateProject, refreshKey }) {
           <NavLink
             key={p.id}
             to={`/projects/${p.id}`}
+            onClick={onNavigate}
             className={({ isActive }) =>
               `flex items-center justify-between rounded-md px-2 py-1.5 text-sm mb-0.5 ${
                 isActive
@@ -71,7 +75,10 @@ export default function Sidebar({ onCreateProject, refreshKey }) {
 
       <div className="border-t border-gray-200 dark:border-gray-700 p-2">
         <button
-          onClick={() => navigate('/projects')}
+          onClick={() => {
+            navigate('/projects');
+            onNavigate?.();
+          }}
           className="w-full rounded-md px-2 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           → Go to projects dashboard
