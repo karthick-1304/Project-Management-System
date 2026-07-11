@@ -9,6 +9,7 @@ import projectRoutes from './routes/project.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { projectTaskRoutes, taskRoutes } from './routes/task.routes.js';
 import { taskCommentRoutes, commentRoutes } from './routes/comment.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 export function createApp() {
   const app = express();
@@ -37,6 +38,7 @@ export function createApp() {
   app.use('/api/tasks', taskRoutes);
   app.use('/api', commentRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
