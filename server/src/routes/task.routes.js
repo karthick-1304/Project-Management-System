@@ -12,6 +12,7 @@ projectTaskRoutes.post('/', ctrl.create);
 export const taskRoutes = Router();
 taskRoutes.use(requireAuth);
 taskRoutes.get('/:id', ctrl.detail);
+taskRoutes.get('/:id/logs', ctrl.logs);
 taskRoutes.patch('/:id', ctrl.update);
 taskRoutes.patch('/:id/status', ctrl.updateStatus);
 taskRoutes.delete('/:id', ctrl.remove);

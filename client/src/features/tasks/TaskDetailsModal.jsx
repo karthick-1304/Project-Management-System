@@ -3,6 +3,7 @@ import Modal from '../../components/Modal.jsx';
 import { Button, Alert } from '../../components/ui.jsx';
 import { tasksApi } from '../../api/tasks.js';
 import CommentsSection from './CommentsSection.jsx';
+import ActivitySection from './ActivitySection.jsx';
 import {
   formatDate,
   priorityClasses,
@@ -15,6 +16,7 @@ export default function TaskDetailsModal({ open, onClose, taskId, onEdit, onChan
   const [perms, setPerms] = useState(null);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [logRefresh, setLogRefresh] = useState(0);
 
   const load = () => {
     if (!taskId) return;
@@ -40,6 +42,7 @@ export default function TaskDetailsModal({ open, onClose, taskId, onEdit, onChan
     try {
       const { task: t } = await tasksApi.updateStatus(taskId, status);
       setTask(t);
+      setLogRefresh((n) => n + 1);
       onChanged?.();
     } catch (e) {
       setError(e.message);
@@ -125,10 +128,12 @@ export default function TaskDetailsModal({ open, onClose, taskId, onEdit, onChan
           <Alert kind="info">{editHint}</Alert>
 
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <CommentsSection taskId={task.id} canDeleteAny={perms?.canDelete} />
+            <ActivitySection taskId={task.id} refreshKey={logRefresh} />
           </div>
 
-          {/* Activity log section is added in the next step. */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <CommentsSection taskId={task.id} canDeleteAny={perms?.canDelete} />
+          </div>
 
           <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
             {perms?.canDelete &&

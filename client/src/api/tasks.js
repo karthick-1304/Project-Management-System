@@ -12,6 +12,7 @@ export const tasksApi = {
   create: (projectId, body) =>
     apiFetch(`/projects/${projectId}/tasks`, { method: 'POST', body }),
   get: (id) => apiFetch(`/tasks/${id}`),
+  logs: (id) => apiFetch(`/tasks/${id}/logs`),
   update: (id, body) => apiFetch(`/tasks/${id}`, { method: 'PATCH', body }),
   updateStatus: (id, status) =>
     apiFetch(`/tasks/${id}/status`, { method: 'PATCH', body: { status } }),

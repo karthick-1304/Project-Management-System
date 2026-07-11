@@ -31,3 +31,8 @@ export const remove = asyncHandler(async (req, res) => {
   await svc.deleteTask(req.user.id, req.params.id);
   res.json({ ok: true });
 });
+
+export const logs = asyncHandler(async (req, res) => {
+  const logs = await svc.getTaskLogs(req.user.id, req.params.id);
+  res.json({ logs });
+});

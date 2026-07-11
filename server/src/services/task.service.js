@@ -230,6 +230,24 @@ export async function deleteTask(userId, taskId) {
   return { ok: true };
 }
 
+/** Activity log entries for a single task, newest first. */
+export async function getTaskLogs(userId, taskId) {
+  const { row } = await loadTaskWithPerms(userId, taskId);
+  const { rows } = await query(
+    `SELECT l.id, l.action_type, l.message, l.action_at, u.name AS action_by_name
+       FROM logs l LEFT JOIN users u ON u.id = l.action_by
+      WHERE l.task_id = $1 ORDER BY l.action_at DESC`,
+    [taskId]
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    actionType: r.action_type,
+    message: r.message,
+    actionAt: r.action_at,
+    actionByName: r.action_by_name,
+  }));
+}
+
 async function assertAssigneeIsCollaborator(assigneeId, projectId) {
   const role = await getProjectRole(assigneeId, projectId);
   if (!role) throw new HttpError(400, 'Assignee must be a collaborator on the project');
