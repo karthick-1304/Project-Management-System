@@ -112,6 +112,21 @@ export async function createProject(userId, { name, key, description, status, co
   if (!name?.trim()) throw new HttpError(400, 'Project name is required');
   if (!key?.trim()) throw new HttpError(400, 'Project key is required');
 
+  // Validate collaborator emails up front — reject (and create nothing) if any
+  // are not registered users.
+  const requestedEmails = [
+    ...new Set((collaboratorEmails || []).map((e) => String(e).trim().toLowerCase()).filter(Boolean)),
+  ];
+  const found = await resolveUserIdsByEmail(requestedEmails);
+  const foundEmails = new Set(found.map((u) => u.email.toLowerCase()));
+  const missing = requestedEmails.filter((e) => !foundEmails.has(e));
+  if (missing.length) {
+    throw new HttpError(
+      400,
+      `These emails are not registered users: ${missing.join(', ')}. Project was not created.`
+    );
+  }
+
   const project = await withTransaction(async (client) => {
     let row;
     try {
@@ -136,8 +151,8 @@ export async function createProject(userId, { name, key, description, status, co
       [row.id, userId]
     );
 
-    // Add members (skip the creator if present).
-    const members = (await resolveUserIdsByEmail(collaboratorEmails)).filter((u) => u.id !== userId);
+    // Add members (skip the creator if present). Emails were validated above.
+    const members = found.filter((u) => u.id !== userId);
     for (const m of members) {
       await client.query(
         `INSERT INTO project_collaborators (project_id, user_id, role)

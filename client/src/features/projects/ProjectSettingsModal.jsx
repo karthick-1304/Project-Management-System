@@ -32,8 +32,16 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
     setMsg('');
     setConfirmDelete(false);
     setNewEmail('');
+    // Refetch fresh detail on open so collaborator changes made in a previous
+    // session of this modal are reflected without a page refresh.
+    projectsApi
+      .get(project.id)
+      .then((d) => setCollaborators(d.project.collaborators || []))
+      .catch(() => {});
     projectsApi.logs(project.id).then((d) => setLogs(d.logs)).catch(() => setLogs([]));
-  }, [open, project]);
+    // Depend on project.id (not the object) so parent re-renders don't reset the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, project?.id]);
 
   const save = async () => {
     setError('');
@@ -59,6 +67,7 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
     try {
       const { collaborators: c } = await projectsApi.addCollaborator(project.id, email);
       setCollaborators(c);
+      onUpdated?.({ ...project, collaborators: c });
       setNewEmail('');
       setMsg('Collaborator added and notified.');
     } catch (err) {
@@ -73,6 +82,7 @@ export default function ProjectSettingsModal({ open, onClose, project, onUpdated
     try {
       const { collaborators: c } = await projectsApi.removeCollaborator(project.id, userId);
       setCollaborators(c);
+      onUpdated?.({ ...project, collaborators: c });
       setMsg('Collaborator removed and notified.');
     } catch (err) {
       setError(err.message);
