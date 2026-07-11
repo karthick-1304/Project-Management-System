@@ -2,6 +2,16 @@
 
 A full-stack project management application (Jira/Trello/Asana-style) with projects, tasks, a drag-and-drop Kanban board, collaborators, comments with attachments, activity logs, and a dashboard.
 
+## Live Demo
+
+- **App:** https://project-management-system-tau-one.vercel.app
+- **API:** https://project-management-system-1osq.onrender.com/api/health
+
+**Test login** (any of these — password `Password123!`):
+`alice@example.com` (owner) · `bob@example.com` (member) · `carol@example.com` (member)
+
+> ⚠️ The backend is on Render's free tier and **sleeps after ~15 min of inactivity**. The **first request may take ~30–50 seconds** to wake it (the login button will spin) — subsequent requests are fast.
+
 ## Tech Stack
 
 | Layer | Technology |
