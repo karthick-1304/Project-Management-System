@@ -166,3 +166,18 @@ BEGIN
   RETURN v_key || '-' || v_num;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Row Level Security ---------------------------------------------------------
+-- This app never uses Supabase's Data API (PostgREST) or the anon/publishable
+-- key. All access goes through the Express server on the owner connection,
+-- which bypasses RLS. Enabling RLS with NO policies denies every request that
+-- would come through the Data API, closing that surface and clearing the
+-- Supabase Advisor "RLS Disabled in Public" warnings.
+ALTER TABLE users                 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE password_resets       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_collaborators ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks                 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attachments           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE logs                  ENABLE ROW LEVEL SECURITY;
